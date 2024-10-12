@@ -246,6 +246,11 @@ void SettingActivity::onContentAvailable() {
         return true;
     });
 
+    btnExportBan->registerClickAction([](...) -> bool {
+        ProgramConfig::instance().mergeBanList();
+        return true;
+    });
+
     labelAboutVersion->setText(version
 #if defined(BOREALIS_USE_DEKO3D)
                                 + " (deko3d)"

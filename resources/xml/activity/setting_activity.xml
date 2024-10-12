@@ -266,6 +266,10 @@
                                 id="tools/release_checker"/>
 
                         <brls:RadioCell
+                                id="tools/export_banlist"
+                                title="@i18n/wiliwili/setting/tools/others/exportbanlist"/>
+
+                        <brls:RadioCell
                                 id="tools/quit"
                                 title="@i18n/hints/exit"/>
                     </brls:Box>

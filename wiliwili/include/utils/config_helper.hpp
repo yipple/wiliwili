@@ -8,6 +8,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <unordered_set>
 #include <nlohmann/json.hpp>
 #include "analytics.h"
 #include "borealis/core/singleton.hpp"
@@ -171,6 +172,8 @@ public:
     std::string getUserID();
     std::string getBuvid3();
     bool hasLoginInfo();
+    bool HasBanUser(uint64_t mid);
+    bool BanUser(uint64_t mid, bool save);
 
     // Google Analytics ID
     std::string getClientID();
@@ -221,6 +224,10 @@ public:
 
     void init();
 
+    void saveBanList();
+
+    void mergeBanList();
+
     std::string getConfigDir();
 
     std::string getHomePath();
@@ -266,6 +273,8 @@ public:
     SeasonCustomSetting seasonCustom;
     std::string httpProxy;
     std::string httpsProxy;
+    std::unordered_set<uint64_t> banList;
+    std::unordered_set<uint64_t> whiteList;
 
     static std::unordered_map<SettingItem, ProgramOption> SETTING_MAP;
 };

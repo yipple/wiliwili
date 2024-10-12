@@ -10,12 +10,24 @@
 #include "view/recycling_grid.hpp"
 #include "utils/activity_helper.hpp"
 #include "utils/image_helper.hpp"
+#include "utils/config_helper.hpp"
 
 using namespace brls::literals;
 
 class DataSourceHotsAllVideoList : public RecyclingGridDataSource {
 public:
-    explicit DataSourceHotsAllVideoList(bilibili::HotsAllVideoListResult result) : videoList(std::move(result)) {}
+    explicit DataSourceHotsAllVideoList(bilibili::HotsAllVideoListResult result) : videoList(std::move(result)) {
+        auto it = videoList.begin();
+        while (it != videoList.end()) {
+            if (ProgramConfig::instance().HasBanUser(it->owner.mid)) {
+                it = videoList.erase(it);  // 删除元素并更新迭代器
+
+                brls::Logger::info("ERROS {} {}", it->owner.mid, it->owner.name);
+            } else {
+                ++it;  // 继续下一个元素
+            }
+        }
+    }
     RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
         //从缓存列表中取出 或者 新生成一个表单项
         RecyclingGridItemVideoCard* item = (RecyclingGridItemVideoCard*)recycler->dequeueReusableCell("Cell");
@@ -32,7 +44,13 @@ public:
     void onItemSelected(RecyclingGrid* recycler, size_t index) override { Intent::openBV(videoList[index].bvid); }
 
     void appendData(const bilibili::HotsAllVideoListResult& data) {
-        this->videoList.insert(this->videoList.end(), data.begin(), data.end());
+        for (const auto& i : data) {
+            if (ProgramConfig::instance().HasBanUser(i.owner.mid)) {
+                brls::Logger::info("Baned {} {}", i.owner.name, i.owner.mid);
+                continue;
+            }
+            this->videoList.emplace_back(i);
+        }
     }
 
     void clearData() override { this->videoList.clear(); }

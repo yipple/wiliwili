@@ -119,10 +119,12 @@ protected:
     BRLS_BIND(RecyclingGrid, recyclingGrid, "video/comment/recyclingGrid");
     BRLS_BIND(AutoTabFrame, tabFrame, "player/tab_frame");
     BRLS_BIND(SVGImage, btnAgree, "video/btn/agree");
+    BRLS_BIND(SVGImage, btnHated, "video/btn/hated");
     BRLS_BIND(SVGImage, btnCoin, "video/btn/coin");
     BRLS_BIND(SVGImage, btnFavorite, "video/btn/favorite");
     BRLS_BIND(SVGImage, btnQR, "video/btn/qr");
     BRLS_BIND(brls::Label, labelAgree, "video/label/agree");
+    BRLS_BIND(brls::Label, labelHated, "video/label/hated");
     BRLS_BIND(brls::Label, labelCoin, "video/label/coin");
     BRLS_BIND(brls::Label, labelFavorite, "video/label/favorite");
     BRLS_BIND(brls::Label, labelQR, "video/label/qr");

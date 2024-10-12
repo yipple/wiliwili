@@ -61,7 +61,18 @@ private:
 class DataSourceRelatedVideoList : public RecyclingGridDataSource {
 public:
     DataSourceRelatedVideoList(bilibili::VideoDetailListResult result, ChangeVideoEvent cb)
-        : list(std::move(result)), changeVideoEvent(std::move(cb)) {}
+        : list(std::move(result)), changeVideoEvent(std::move(cb)) {
+        //TODO:
+        auto it = list.begin();
+        while (it != list.end()) {
+            if (ProgramConfig::instance().HasBanUser(it->owner.mid)) {
+                it = list.erase(it);  // 删除元素并更新迭代器
+                brls::Logger::info("ERROSRelate {} {}", it->owner.mid, it->owner.name);
+            } else {
+                ++it;  // 继续下一个元素
+            }
+        }
+    }
     RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
         RecyclingGridItemRelatedVideoCard* item =
             (RecyclingGridItemRelatedVideoCard*)recycler->dequeueReusableCell("Cell");
@@ -76,7 +87,13 @@ public:
     void onItemSelected(RecyclingGrid* recycler, size_t index) override { changeVideoEvent.fire(list[index]); }
 
     void appendData(const bilibili::VideoDetailListResult& data) {
-        this->list.insert(this->list.end(), data.begin(), data.end());
+        for (const auto& i : data) {
+            if (ProgramConfig::instance().HasBanUser(i.owner.mid)) {
+                brls::Logger::info("BanedRelate {} {}", i.owner.name, i.owner.mid);
+                continue;
+            }
+            this->list.emplace_back(i);
+        }
     }
 
     void clearData() override { this->list.clear(); };
@@ -158,7 +175,8 @@ void PlayerActivity::onContentAvailable() {
     this->videoTitleBox->addGestureRecognizer(new brls::TapGestureRecognizer(this->videoTitleBox));
 
     // 自动加载下一页评论
-    this->recyclingGrid->onNextPage([this]() { this->requestVideoComment(std::to_string(this->videoDetailResult.aid)); });
+    this->recyclingGrid->onNextPage(
+        [this]() { this->requestVideoComment(std::to_string(this->videoDetailResult.aid)); });
 
     this->requestData(this->videoDetailResult);
 
@@ -166,6 +184,13 @@ void PlayerActivity::onContentAvailable() {
     this->btnAgree->getParent()->registerClickAction([this](...) {
         if (!DialogHelper::checkLogin()) return true;
         this->beAgree(this->videoDetailResult.aid);
+        return true;
+    });
+
+    // 点踩按钮
+    this->btnHated->getParent()->registerClickAction([this](...) {
+        if (!DialogHelper::checkLogin()) return true;
+        this->beDisagree(this->videoDetailResult.owner.mid);
         return true;
     });
 
@@ -241,6 +266,7 @@ void PlayerActivity::onVideoInfo(const bilibili::VideoDetailResult& result) {
     this->labelCoin->setText(wiliwili::num2w(result.stat.coin));
     this->labelFavorite->setText(wiliwili::num2w(result.stat.favorite));
     this->labelQR->setText(wiliwili::num2w(result.stat.share));
+    this->labelHated->setText(ProgramConfig::instance().HasBanUser(result.owner.mid) ? "Bad" : "Good");
 }
 
 void PlayerActivity::onUpInfo(const bilibili::UserDetailResultWrapper& user) {

@@ -29,6 +29,7 @@
 #include "view/danmaku_core.hpp"
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
+#include "utils/dialog_helper.hpp"
 
 #ifdef PS4
 #include <orbis/SystemService.h>
@@ -326,6 +327,25 @@ std::string ProgramConfig::getBuvid3() {
 
 bool ProgramConfig::hasLoginInfo() { return !getUserID().empty() && (getUserID() != "0") && !getCSRF().empty(); }
 
+bool ProgramConfig::BanUser(uint64_t mid, bool save) {
+    if (this->banList.find(mid) == this->banList.end()) {
+        this->banList.insert(mid);
+        if (save) {
+            this->saveBanList();
+        }
+
+        return true;
+    }
+    return false;
+}
+
+bool ProgramConfig::HasBanUser(uint64_t mid) {
+    if (this->whiteList.find(mid) != this->whiteList.end()) {
+        return false;
+    }
+    return this->banList.find(mid) != this->banList.end();
+}
+
 std::string ProgramConfig::getClientID() {
     if (this->client.empty()) {
         this->client = fmt::format("{}.{}", wiliwili::getRandomNumber(), wiliwili::getUnixTime());
@@ -400,6 +420,51 @@ void ProgramConfig::load() {
             brls::Logger::error("ProgramConfig::load: {}", e.what());
         }
         brls::Logger::info("Load config from: {}", path);
+    }
+
+    const std::string pathData = this->getConfigDir() + "/wiliwili_export.txt";
+    std::ifstream readFileData(pathData);
+    if (readFileData) {
+        std::string line;
+        std::unordered_set<uint64_t> tmpList;
+        while (std::getline(readFileData, line)) {
+            std::stringstream ss(line);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                try {
+                    uint64_t value = std::stoull(item);
+                    tmpList.insert(value);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument error converting '" << item << "' to int." << std::endl;
+                } catch (const std::out_of_range& e) {
+                    std::cerr << "Out of range error converting '" << item << "' to int." << std::endl;
+                }
+            }
+        }
+        this->banList = std::move(tmpList);
+    }
+
+    const std::string pathWhite = this->getConfigDir() + "/wiliwili_whitelist.txt";
+    std::ifstream readFileWhiteData(pathWhite);
+    if (readFileWhiteData) {
+        std::string line;
+        std::unordered_set<uint64_t> tmpList;
+        while (std::getline(readFileWhiteData, line)) {
+            std::stringstream ss(line);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                try {
+                    uint64_t value = std::stoull(item);
+                    tmpList.insert(value);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument error converting '" << item << "' to int." << std::endl;
+                } catch (const std::out_of_range& e) {
+                    std::cerr << "Out of range error converting '" << item << "' to int." << std::endl;
+                }
+            }
+        }
+        this->whiteList = std::move(tmpList);
+        brls::Logger::info("Load White:{} ", this->whiteList.size());
     }
 
     // 初始化代理
@@ -734,6 +799,64 @@ void ProgramConfig::save() {
     brls::Logger::info("Write config to: {}", path);
 }
 
+void ProgramConfig::mergeBanList() {
+    const std::string pathData = this->getConfigDir() + "/wiliwili_update.txt";
+    std::ifstream readFileData(pathData);
+    if (readFileData) {
+        std::string line;
+        std::map<uint64_t, bool> tmpList;
+        while (std::getline(readFileData, line)) {
+            std::stringstream ss(line);
+            std::string item;
+            while (std::getline(ss, item, ',')) {
+                try {
+                    uint64_t value = std::stoull(item);
+                    tmpList[value] = true;
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid argument error converting '" << item << "' to int." << std::endl;
+                } catch (const std::out_of_range& e) {
+                    std::cerr << "Out of range error converting '" << item << "' to int." << std::endl;
+                }
+            }
+        }
+        int updateCount = 0;
+        for (auto& i : tmpList) {
+            if (BanUser(i.first, false)) {
+                updateCount++;
+            }
+        }
+        if (updateCount > 0) {
+            saveBanList();
+        }
+        brls::Logger::info("update Count:{} ", updateCount);
+        DialogHelper::showDialog(fmt::format("update Count:{} ", updateCount));
+    } else {
+        DialogHelper::showDialog(fmt::format("update NoFile {}", pathData));
+        brls::Logger::info("update NoFile {}", pathData);
+    }
+}
+
+void ProgramConfig::saveBanList() {
+    const std::string path = this->getConfigDir() + "/wiliwili_export.txt";
+    // fs is defined in cpr/cpr.h
+#ifndef IOS
+    cpr::fs::create_directories(this->getConfigDir());
+#endif
+    std::ofstream writeFile(path);
+    if (!writeFile) {
+        brls::Logger::error("Cannot write config to: {}", path);
+        return;
+    }
+    auto it = this->banList.begin();
+    while (it != banList.end()) {
+        writeFile << *it;
+        writeFile << ",";
+        ++it;  // 继续下一个元素
+    }
+    writeFile.close();
+    brls::Logger::info("ExportBan to: {}", path);
+}
+
 void ProgramConfig::checkOnTop() {
     switch (getIntOption(SettingItem::ON_TOP_MODE)) {
         case 0:
@@ -747,11 +870,9 @@ void ProgramConfig::checkOnTop() {
         case 2: {
             // 自动模式，根据窗口大小判断是否需要切换到置顶模式
             double factor = brls::Application::getPlatform()->getVideoContext()->getScaleFactor();
-            int minWidth =
-                ProgramConfig::instance().getIntOption(SettingItem::ON_TOP_WINDOW_WIDTH) * factor + 0.1;
-            int minHeight =
-                ProgramConfig::instance().getIntOption(SettingItem::ON_TOP_WINDOW_HEIGHT) * factor + 0.1;
-            bool onTop = brls::Application::windowWidth <= minWidth || brls::Application::windowHeight <= minHeight;
+            int minWidth  = ProgramConfig::instance().getIntOption(SettingItem::ON_TOP_WINDOW_WIDTH) * factor + 0.1;
+            int minHeight = ProgramConfig::instance().getIntOption(SettingItem::ON_TOP_WINDOW_HEIGHT) * factor + 0.1;
+            bool onTop    = brls::Application::windowWidth <= minWidth || brls::Application::windowHeight <= minHeight;
             brls::Application::getPlatform()->setWindowAlwaysOnTop(onTop);
             break;
         }
