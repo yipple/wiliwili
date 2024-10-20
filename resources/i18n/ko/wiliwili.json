@@ -112,7 +112,8 @@
         "dlna_quit": "DLNA 캐스팅을 종료하겠습니까?",
         "up2date": "앱이 최신 상태임",
         "release": "업데이트 확인",
-        "config": "구성 디렉토리 열기"
+        "config": "구성 디렉토리 열기",
+        "exportbanlist": "MergeBanList"
       }
     },
     "about": {
