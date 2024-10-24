@@ -123,13 +123,9 @@
         "up2date": "应用已经是最新版",
         "checking_update": "正在检查更新...",
         "release": "检查更新",
-<<<<<<< HEAD
         "config": "打开配置目录",
         "exportbanlist": "MergeBanList"
-=======
         "config_dir": "配置目录",
-        "config": "打开配置目录"
->>>>>>> upstream/yoga
       }
     },
     "about": {

@@ -123,13 +123,9 @@
         "up2date": "應用程式為最新版本。",
         "checking_update": "正在檢查更新...",
         "release": "檢查更新",
-<<<<<<< HEAD
         "config": "開啟設定檔目錄",
         "exportbanlist": "MergeBanList"
-=======
         "config_dir": "設定檔目錄",
-        "config": "開啟設定檔目錄"
->>>>>>> upstream/yoga
       }
     },
     "about": {

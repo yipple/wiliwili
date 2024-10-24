@@ -123,13 +123,9 @@
         "up2date": "App is up to date",
         "checking_update": "Checking for updates...",
         "release": "Check for updates",
-<<<<<<< HEAD
         "config": "Open config directory",
         "exportbanlist": "MergeBanList"
-=======
         "config_dir": "Config directory",
-        "config": "Open config directory"
->>>>>>> upstream/yoga
       }
     },
     "about": {

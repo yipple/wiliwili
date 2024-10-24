@@ -123,13 +123,9 @@
         "up2date": "앱이 최신 상태임",
         "checking_update": "업데이트를 확인하는 중...",
         "release": "업데이트 확인",
-<<<<<<< HEAD
         "config": "구성 디렉토리 열기",
         "exportbanlist": "MergeBanList"
-=======
         "config_dir": "구성 디렉터리",
-        "config": "구성 디렉터리 열기"
->>>>>>> upstream/yoga
       }
     },
     "about": {
