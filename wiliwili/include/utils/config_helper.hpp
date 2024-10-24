@@ -276,12 +276,11 @@ public:
     SeasonCustomSetting seasonCustom;
     std::string httpProxy;
     std::string httpsProxy;
-<<<<<<< HEAD
+
     std::unordered_set<uint64_t> banList;
     std::unordered_set<uint64_t> whiteList;
-=======
+
     std::unordered_set<uint64_t> upFilter; // 此列表中的up主在推荐页面将不显示
->>>>>>> upstream/yoga
 
     static std::unordered_map<SettingItem, ProgramOption> SETTING_MAP;
 };
