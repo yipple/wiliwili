@@ -252,9 +252,12 @@ void BasePlayerActivity::setCommonData() {
                              return true;
                          });
 
+
     this->btnQR->getParent()->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnQR->getParent()));
 
     this->btnAgree->getParent()->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnAgree->getParent()));
+
+    this->btnHated->getParent()->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnHated->getParent()));
 
     this->btnCoin->getParent()->addGestureRecognizer(new brls::TapGestureRecognizer(this->btnCoin->getParent()));
 
@@ -692,6 +695,9 @@ void BasePlayerActivity::setRelationButton(bool liked, bool coin, bool favorite)
     } else {
         btnAgree->setImageFromSVGRes("svg/bpx-svg-sprite-liked.svg");
     }
+
+    btnHated->setImageFromSVGRes("svg/bpx-svg-sprite-hated.svg");
+
     if (coin) {
         btnCoin->setImageFromSVGRes("svg/bpx-svg-sprite-coin-active.svg");
     } else {

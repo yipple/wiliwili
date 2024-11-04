@@ -14,6 +14,7 @@
 #include "view/video_view.hpp"
 #include "view/mpv_core.hpp"
 #include "bilibili/result/mine_collection_result.h"
+#include "utils/dialog_helper.hpp"
 
 /// 请求视频数据
 void VideoDetail::requestData(const bilibili::VideoDetailResult& video) { this->requestVideoInfo(video.bvid); }
@@ -591,6 +592,18 @@ int VideoDetail::getCoinTolerate() {
     // 非番剧视频
     int total = videoDetailResult.copyright == 1 ? 2 : 1;
     return total - videoRelation.coin;
+}
+
+/// 点踩
+void VideoDetail::beDisagree(uint64_t mid) {
+    std::string csrf = ProgramConfig::instance().getCSRF();
+    if (csrf.empty()) return;
+    brls::Logger::info("disagree ! {}", mid);
+    // 在返回前预先设置状态
+    bool isBan = ProgramConfig::instance().BanUser(mid, true);
+    if (isBan) {
+        DialogHelper::showDialog(fmt::format("Banned:{} ", this->videoDetailResult.owner.name));
+    }
 }
 
 /// 点赞

@@ -12,6 +12,7 @@
 #include "utils/config_helper.hpp"
 #include "utils/activity_helper.hpp"
 #include "utils/image_helper.hpp"
+#include "utils/config_helper.hpp"
 
 using namespace brls::literals;
 
@@ -20,7 +21,20 @@ using namespace brls::literals;
 class DataSourceRecommendVideoList : public RecyclingGridDataSource {
 public:
     explicit DataSourceRecommendVideoList(bilibili::RecommendVideoListResult result)
-        : recommendList(std::move(result)) {}
+        : recommendList(std::move(result)) {
+        auto it = recommendList.begin();
+        while (it != recommendList.end()) {
+            if (it->id == 0 || ProgramConfig::instance().HasBanUser(it->owner.mid)) {
+                it = recommendList.erase(it);  // 删除元素并更新迭代器
+
+                brls::Logger::info("ERROS {} {}", it->id == 0 ? 0 : it->owner.mid,
+                                   it->id == 0 ? "NULL" : it->owner.name);
+            } else {
+                ++it;  // 继续下一个元素
+            }
+        }
+    }
+
     RecyclingGridItem* cellForRow(RecyclingGrid* recycler, size_t index) override {
         //从缓存列表中取出 或者 新生成一个表单项
         RecyclingGridItemVideoCard* item = (RecyclingGridItemVideoCard*)recycler->dequeueReusableCell("Cell");
@@ -66,6 +80,15 @@ public:
         brls::Logger::debug("DataSourceRecommendVideoList: append data");
         bool skip = false;
         for (const auto& i : data) {
+            //TODO:
+            if (i.id == 0) {
+                continue;
+            }
+
+            if (ProgramConfig::instance().HasBanUser(i.owner.mid)) {
+                brls::Logger::info("Baned {} {}", i.owner.name, i.owner.mid);
+                continue;
+            }
             skip = false;
             for (const auto& j : this->recommendList) {
                 if (j.cid == i.cid) {
@@ -130,6 +153,8 @@ void HomeRecommends::onRecommendVideoList(const bilibili::RecommendVideoListResu
             if (!result.item.empty()) {
                 datasource->appendData(result.item);
                 recyclingGrid->notifyDataChanged();
+            } else {
+                brls::Logger::debug("Empty auto load {}", result.requestIndex);
             }
         } else {
             brls::Logger::verbose("refresh home recommends: first page");

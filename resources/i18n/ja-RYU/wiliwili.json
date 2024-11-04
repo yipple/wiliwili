@@ -112,7 +112,8 @@
         "dlna_quit": "DLNAキャストしーゅうりょうさびーが？",
         "up2date": "アプリー最新やいびーん",
         "release": "更新確認",
-        "config": "設定ディレクトリふぃらちゅん"
+        "config": "設定ディレクトリふぃらちゅん",
+        "exportbanlist": "MergeBanList"
       }
     },
     "about": {
