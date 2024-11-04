@@ -101,8 +101,7 @@ public:
     void requestVideoPageDetail(const std::string& bvid, uint64_t cid, bool requestHistoryInfo = true);
 
     /// 上报播放进度
-    void reportHistory(uint64_t aid, uint64_t cid, unsigned int progress = 0, unsigned int duration = 0,
-                       int type = 3);
+    void reportHistory(uint64_t aid, uint64_t cid, unsigned int progress = 0, unsigned int duration = 0, int type = 3);
     inline static bool REPORT_HISTORY = true;
 
     /// 视频可以投币的数量
@@ -113,6 +112,9 @@ public:
 
     /// 点赞
     void beAgree(uint64_t aid);
+
+    //踩了
+    void beDisagree(uint64_t mid);
 
     /**
      * 收藏视频
