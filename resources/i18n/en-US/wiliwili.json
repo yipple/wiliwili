@@ -124,8 +124,8 @@
         "checking_update": "Checking for updates...",
         "release": "Check for updates",
         "config": "Open config directory",
-        "exportbanlist": "MergeBanList"
         "config_dir": "Config directory",
+        "exportbanlist": "MergeBanList"
       }
     },
     "about": {
