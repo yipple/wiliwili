@@ -13,6 +13,7 @@
 #include "view/grid_dropdown.hpp"
 #include "utils/activity_helper.hpp"
 #include "utils/image_helper.hpp"
+#include "utils/shortcut_helper.hpp"
 #include "utils/config_helper.hpp"
 
 using namespace brls::literals;
@@ -80,6 +81,7 @@ HomeHotsWeekly::HomeHotsWeekly() {
 
 void HomeHotsWeekly::onCreate() {
     this->registerTabAction("wiliwili/home/common/switch"_i18n, brls::ControllerButton::BUTTON_X,
+                            ShortcutHelper::getRefresh(),
                             [this](brls::View* view) -> bool {
                                 this->switchChannel();
                                 return true;
@@ -125,7 +127,8 @@ brls::View* HomeHotsWeekly::create() { return new HomeHotsWeekly(); }
 
 HomeHotsWeekly::~HomeHotsWeekly() { brls::Logger::debug("Fragment HomeHotsWeeklyActivity: delete"); }
 
-void HomeHotsWeekly::onHotsWeeklyList(const bilibili::HotsWeeklyListResult& result) {}
+void HomeHotsWeekly::onHotsWeeklyList(const bilibili::HotsWeeklyListResult& result) {
+}
 
 void HomeHotsWeekly::onHotsWeeklyVideoList(const bilibili::HotsWeeklyVideoListResult& result, const std::string& label,
                                            const std::string& reminder) {
