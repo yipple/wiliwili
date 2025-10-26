@@ -11,6 +11,7 @@
 #include "view/recycling_grid.hpp"
 #include "utils/image_helper.hpp"
 #include "utils/activity_helper.hpp"
+#include "utils/shortcut_helper.hpp"
 #include "utils/config_helper.hpp"
 
 using namespace brls::literals;
@@ -80,6 +81,7 @@ HomeHotsHistory::HomeHotsHistory() {
 
 void HomeHotsHistory::onCreate() {
     this->registerTabAction("wiliwili/home/common/refresh"_i18n, brls::ControllerButton::BUTTON_X,
+                            ShortcutHelper::getRefresh(),
                             [this](brls::View* view) -> bool {
                                 this->recyclingGrid->refresh();
                                 return true;
