@@ -126,8 +126,8 @@
         "checking_update": "正在檢查更新...",
         "release": "檢查更新",
         "config": "開啟設定檔目錄",
-        "exportbanlist": "MergeBanList"
-        "config_dir": "設定檔目錄",
+        "exportbanlist": "MergeBanList",
+        "config_dir": "設定檔目錄"
       }
     },
     "about": {
