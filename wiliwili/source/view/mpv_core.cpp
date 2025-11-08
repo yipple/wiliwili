@@ -344,15 +344,24 @@ void MPVCore::init() {
         }
     }
 
-    // cache - 优化：默认启用50MB缓存以提升DLNA等网络播放的流畅度
-    int cacheSize = MPVCore::INMEMORY_CACHE > 0 ? MPVCore::INMEMORY_CACHE : 50;
+    // cache - 优化：默认启用缓存以提升DLNA等网络播放的流畅度
+    // Switch内存有限，使用较小的默认值；其他平台使用50MB
+    int defaultCache = 50;
+#if defined(__SWITCH__) || defined(__PSV__)
+    defaultCache = 20;  // Switch/PSV: 默认20MB
+#endif
+    int cacheSize = MPVCore::INMEMORY_CACHE > 0 ? MPVCore::INMEMORY_CACHE : defaultCache;
     brls::Logger::info("set memory cache: {}MB", cacheSize);
     mpvSetOptionString(mpv, "demuxer-max-bytes", fmt::format("{}MiB", cacheSize).c_str());
     mpvSetOptionString(mpv, "demuxer-max-back-bytes", fmt::format("{}MiB", cacheSize / 2).c_str());
 
     // 优化：增加预读缓冲，提升网络播放稳定性
-    mpvSetOptionString(mpv, "demuxer-readahead-secs", "30");  // 预读30秒
-    mpvSetOptionString(mpv, "cache-secs", "10");  // 额外10秒缓存
+    // Switch使用较小的预读时间以节省内存
+#if defined(__SWITCH__) || defined(__PSV__)
+    mpvSetOptionString(mpv, "demuxer-readahead-secs", "15");  // Switch/PSV: 预读15秒
+#else
+    mpvSetOptionString(mpv, "demuxer-readahead-secs", "30");  // 其他平台: 预读30秒
+#endif
 
     // hardware decoding
     if (HARDWARE_DEC) {
@@ -382,10 +391,15 @@ void MPVCore::init() {
     mpvSetOptionString(mpv, "demuxer-lavf-probescore", "50");        // 24 → 50
 
     // 优化：网络超时和自动重连配置，提升弱网环境播放成功率
-    mpvSetOptionString(mpv, "stream-lavf-o", "timeout=10000000");           // 10秒超时（微秒）
-    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect=1");                // 启用重连
-    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect_streamed=1");       // 流媒体重连
-    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect_delay_max=5");      // 最大5秒重连延迟
+    // 注意：多个参数需要用逗号连接，否则会互相覆盖
+    // Switch的WiFi性能一般，使用更长的超时和重连延迟
+#if defined(__SWITCH__)
+    mpvSetOptionString(mpv, "stream-lavf-o",
+        "timeout=15000000,reconnect=1,reconnect_streamed=1,reconnect_delay_max=10");  // Switch: 15秒超时，最大10秒重连延迟
+#else
+    mpvSetOptionString(mpv, "stream-lavf-o",
+        "timeout=10000000,reconnect=1,reconnect_streamed=1,reconnect_delay_max=5");   // 其他平台: 10秒超时，最大5秒重连延迟
+#endif
 
     // log
     // mpvSetOptionString(mpv, "msg-level", "ffmpeg=trace");
