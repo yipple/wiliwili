@@ -127,7 +127,9 @@ std::vector<DlnaRenderer> UpnpDlna::searchRenderer(int timeout) {
         auto s = std::make_shared<cpr::Session>();
         sessionList.emplace_back(s);
         s->SetUrl(i);
-        s->SetTimeout(5000);
+        // 优化：增加超时时间，提升弱网环境下的设备发现成功率
+        s->SetTimeout(15000);        // 5秒 → 15秒总超时
+        s->SetConnectTimeout(5000);  // 连接超时单独设置为5秒
         multiperform.AddSession(s);
     }
     std::vector<cpr::Response> responses = multiperform.Get();

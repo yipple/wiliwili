@@ -344,14 +344,15 @@ void MPVCore::init() {
         }
     }
 
-    if (MPVCore::INMEMORY_CACHE) {
-        // cache
-        brls::Logger::info("set memory cache: {}MB", MPVCore::INMEMORY_CACHE);
-        mpvSetOptionString(mpv, "demuxer-max-bytes", fmt::format("{}MiB", MPVCore::INMEMORY_CACHE).c_str());
-        mpvSetOptionString(mpv, "demuxer-max-back-bytes", fmt::format("{}MiB", MPVCore::INMEMORY_CACHE / 2).c_str());
-    } else {
-        mpvSetOptionString(mpv, "cache", "no");
-    }
+    // cache - 优化：默认启用50MB缓存以提升DLNA等网络播放的流畅度
+    int cacheSize = MPVCore::INMEMORY_CACHE > 0 ? MPVCore::INMEMORY_CACHE : 50;
+    brls::Logger::info("set memory cache: {}MB", cacheSize);
+    mpvSetOptionString(mpv, "demuxer-max-bytes", fmt::format("{}MiB", cacheSize).c_str());
+    mpvSetOptionString(mpv, "demuxer-max-back-bytes", fmt::format("{}MiB", cacheSize / 2).c_str());
+
+    // 优化：增加预读缓冲，提升网络播放稳定性
+    mpvSetOptionString(mpv, "demuxer-readahead-secs", "30");  // 预读30秒
+    mpvSetOptionString(mpv, "cache-secs", "10");  // 额外10秒缓存
 
     // hardware decoding
     if (HARDWARE_DEC) {
@@ -376,9 +377,15 @@ void MPVCore::init() {
     // Fix vo_wait_frame() cannot be wakeup
     mpvSetOptionString(mpv, "video-latency-hacks", "yes");
 #endif
-    // 过低的值可能导致部分直播流无法正确播放
-    mpvSetOptionString(mpv, "demuxer-lavf-analyzeduration", "0.4");
-    mpvSetOptionString(mpv, "demuxer-lavf-probescore", "24");
+    // 优化流分析参数，提升网络流识别准确度和稳定性
+    mpvSetOptionString(mpv, "demuxer-lavf-analyzeduration", "2.0");  // 0.4 → 2.0秒
+    mpvSetOptionString(mpv, "demuxer-lavf-probescore", "50");        // 24 → 50
+
+    // 优化：网络超时和自动重连配置，提升弱网环境播放成功率
+    mpvSetOptionString(mpv, "stream-lavf-o", "timeout=10000000");           // 10秒超时（微秒）
+    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect=1");                // 启用重连
+    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect_streamed=1");       // 流媒体重连
+    mpvSetOptionString(mpv, "stream-lavf-o", "reconnect_delay_max=5");      // 最大5秒重连延迟
 
     // log
     // mpvSetOptionString(mpv, "msg-level", "ffmpeg=trace");
